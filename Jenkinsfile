@@ -2,7 +2,7 @@ pipeline {
     agent { label 'JAgent-Node' }
 
     environment {
-        APP_NAME       = "ecommerce-site"
+        APP_NAME       = "eocmmerce-site"
         RELEASE        = "1.0.0"
         IMAGE_TAG      = "${RELEASE}-${BUILD_NUMBER}"
         DOCKERHUB_USER = "registry2002"
