@@ -38,6 +38,7 @@ pipeline {
                   set -e
                   mkdir -p build
                   cp -r css fonts img js *.html style.css build/
+                  echo "Contents of build folder:"
                   ls -l build
                   zip -r ${APP_NAME}-${IMAGE_TAG}.zip build
                 '''
@@ -53,21 +54,7 @@ pipeline {
             steps {
                 sh '''
                   set -e
-                  # Fail early if build folder is missing
-                  if [ ! -d "build" ]; then
-                      echo "ERROR: build/ folder does not exist!"
-                      exit 1
-                  fi
-
-                  # Create Dockerfile
-                  cat > Dockerfile <<EOF
-                  FROM nginx:alpine
-                  COPY build/ /usr/share/nginx/html/
-                  EXPOSE 80
-                  CMD ["sh", "-c", "nginx & tail -f /dev/null"]
-                  EOF
-
-                  # Build Docker image
+                  # Build Docker image using Dockerfile from repo
                   docker build -t ${APP_NAME}:${IMAGE_TAG} .
                   docker images | grep ${APP_NAME}
                 '''
