@@ -90,7 +90,7 @@ pipeline {
 
         stage('Upload Zip to Azure Blob Storage') {
             steps {
-                withCredentials([azureServicePrincipal(credentialsId: 'ecomm-astr')]) {
+                withCredentials([azureServicePrincipal(credentialsId: 'ecomm-azctry')]) {
                     sh '''
                       set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
