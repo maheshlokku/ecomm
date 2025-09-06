@@ -2,11 +2,11 @@ pipeline {
     agent { label 'JAgent-Node' }
 
     environment {
-        APP_NAME               = "ecommerce-site"
+        APP_NAME               = "ecomm"
         RELEASE                = "1.0.0"
         IMAGE_TAG              = "${RELEASE}-${BUILD_NUMBER}"
         DOCKERHUB_USER         = "registry2002"
-        DOCKERHUB_REPO         = "registry2002/ecomm"
+        DOCKERHUB_REPO         = "ecomm"
         ACR_NAME               = "eocmm.azurecr.io"
         AZURE_STORAGE_ACCOUNT  = "ecommstr"
         AZURE_CONTAINER        = "ecommctr"
