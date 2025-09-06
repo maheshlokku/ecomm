@@ -76,7 +76,7 @@ pipeline {
 
         stage('Push to Azure Container Registry (ACR)') {
             steps {
-                withCredentials([azureServicePrincipal(credentialsId: 'AzureCredentials')]) {
+                withCredentials([azureServicePrincipal(credentialsId: 'ecomm-azcrtry')]) {
                     sh '''
                       set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
