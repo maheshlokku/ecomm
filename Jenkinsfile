@@ -7,7 +7,7 @@ pipeline {
         IMAGE_TAG      = "${RELEASE}-${BUILD_NUMBER}"
         DOCKERHUB_USER = "registry2002"
         DOCKERHUB_REPO = "registry2002/ecomm"
-        ACR_NAME       = "eocmm.azurecr.io
+        ACR_NAME       = "eocmm.azurecr.io"
         AZURE_STORAGE_ACCOUNT = "ecommstr"
         AZURE_CONTAINER       = "ecommctr"
     }
