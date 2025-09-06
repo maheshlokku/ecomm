@@ -22,7 +22,7 @@ pipeline {
         stage('Build SCSS') {
             steps {
                 // Use NodeJS plugin for proper Node/npm environment
-                nodejs(nodeJSInstallationName: 'node16') {
+                nodejs(nodeJSInstallationName: 'Node18') {
                     sh '''
                       npm install -g sass
                       mkdir -p css
