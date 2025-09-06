@@ -132,7 +132,7 @@ pipeline {
                           spec:
                             containers:
                             - name: ecommerce
-                              image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
+                              image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}:latest
                               ports:
                               - containerPort: 80
                       ---
