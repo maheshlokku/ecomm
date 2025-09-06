@@ -98,7 +98,8 @@ pipeline {
                       az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
                                              --container-name ${AZURE_CONTAINER} \
                                              --file ${APP_NAME}-${IMAGE_TAG}.zip \
-                                             --name ${APP_NAME}-${IMAGE_TAG}.zip
+                                             --name ${APP_NAME}-${IMAGE_TAG}.zip \
+                                             --auth-mode login
                     '''
                 }
             }
