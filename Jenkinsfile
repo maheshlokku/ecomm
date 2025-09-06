@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/maheshlokku/ecomm.git'
+                git branch: 'master', url: 'https://github.com/maheshlokku/ecomm.git'
             }
         }
 
