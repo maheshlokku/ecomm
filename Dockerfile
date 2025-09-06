@@ -1,9 +1,6 @@
 # Use lightweight Nginx base image
 FROM nginx:alpine
 
-# Set working directory
-WORKDIR /build
-
 # Remove default Nginx content
 RUN rm -rf /usr/share/nginx/html/*
 
