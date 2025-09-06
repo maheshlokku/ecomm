@@ -80,6 +80,7 @@ pipeline {
                     sh '''
                       set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+                      az account set --subscription 72d81257-1d17-40e1-89f6-ce5a59e7956f
                       az acr login --name ${ACR_NAME}
                       docker tag ${APP_NAME}:${IMAGE_TAG} ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
                       docker push ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
