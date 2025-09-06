@@ -21,9 +21,9 @@ pipeline {
 
         stage('Build SCSS') {
             steps {
-                // Use NodeJS plugin for proper Node/npm environment
                 nodejs(nodeJSInstallationName: 'Node18') {
                     sh '''
+                      set -e
                       npm install -g sass
                       mkdir -p css
                       sass scss:css --no-source-map
@@ -35,8 +35,10 @@ pipeline {
         stage('Package Artifacts') {
             steps {
                 sh '''
+                  set -e
                   mkdir -p build
                   cp -r css fonts img js *.html style.css build/
+                  ls -l build
                   zip -r ${APP_NAME}-${IMAGE_TAG}.zip build
                 '''
             }
@@ -50,12 +52,24 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
+                  set -e
+                  # Fail early if build folder is missing
+                  if [ ! -d "build" ]; then
+                      echo "ERROR: build/ folder does not exist!"
+                      exit 1
+                  fi
+
+                  # Create Dockerfile
                   cat > Dockerfile <<EOF
                   FROM nginx:alpine
-                  COPY build/ /usr/share/nginx/html
+                  COPY build/ /usr/share/nginx/html/
+                  EXPOSE 80
+                  CMD ["sh", "-c", "nginx & tail -f /dev/null"]
                   EOF
 
+                  # Build Docker image
                   docker build -t ${APP_NAME}:${IMAGE_TAG} .
+                  docker images | grep ${APP_NAME}
                 '''
             }
         }
@@ -64,6 +78,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'ecommhub-token', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
+                      set -e
                       echo "$PASS" | docker login -u "$USER" --password-stdin
                       docker tag ${APP_NAME}:${IMAGE_TAG} ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
                       docker push ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
@@ -76,6 +91,7 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'ecomm-azctr')]) {
                     sh '''
+                      set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                       az acr login --name ${ACR_NAME}
                       docker tag ${APP_NAME}:${IMAGE_TAG} ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
@@ -89,6 +105,7 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'ecomm-astr')]) {
                     sh '''
+                      set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                       az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
                                              --container-name ${AZURE_CONTAINER} \
@@ -103,6 +120,7 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'aks-json-key')]) {
                     sh '''
+                      set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                       az aks get-credentials --resource-group datavalley_resource_groups --name crm-clstr --overwrite-existing
 
