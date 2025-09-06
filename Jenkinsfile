@@ -10,6 +10,7 @@ pipeline {
         ACR_NAME               = "eocmm"
         AZURE_STORAGE_ACCOUNT  = "ecommstr"
         AZURE_CONTAINER        = "ecommctr"
+        
     }
 
     stages {
@@ -95,7 +96,8 @@ pipeline {
                     sh '''
                       set -e
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                      az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
+                       az account set --subscription 72d81257-1d17-40e1-89f6-ce5a59e7956f
+                       az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
                                              --container-name ${AZURE_CONTAINER} \
                                              --file ${APP_NAME}-${IMAGE_TAG}.zip \
                                              --name ${APP_NAME}-${IMAGE_TAG}.zip \
