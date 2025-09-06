@@ -63,7 +63,7 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockertoken-ecomm', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'ecommhub-token', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
                       set -e
                       echo "$PASS" | docker login -u "$USER" --password-stdin
