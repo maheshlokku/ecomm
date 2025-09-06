@@ -2,14 +2,14 @@ pipeline {
     agent { label 'JAgent-Node' }
 
     environment {
-        APP_NAME       = "eocmmerce-site"
-        RELEASE        = "1.0.0"
-        IMAGE_TAG      = "${RELEASE}-${BUILD_NUMBER}"
-        DOCKERHUB_USER = "registry2002"
-        DOCKERHUB_REPO = "registry2002/ecomm"
-        ACR_NAME       = "eocmm.azurecr.io"
-        AZURE_STORAGE_ACCOUNT = "ecommstr"
-        AZURE_CONTAINER       = "ecommctr"
+        APP_NAME               = "ecommerce-site"
+        RELEASE                = "1.0.0"
+        IMAGE_TAG              = "${RELEASE}-${BUILD_NUMBER}"
+        DOCKERHUB_USER         = "registry2002"
+        DOCKERHUB_REPO         = "registry2002/ecomm"
+        ACR_NAME               = "eocmm.azurecr.io"
+        AZURE_STORAGE_ACCOUNT  = "ecommstr"
+        AZURE_CONTAINER        = "ecommctr"
     }
 
     stages {
@@ -19,20 +19,16 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                  npm install -g sass
-                '''
-            }
-        }
-
         stage('Build SCSS') {
             steps {
-                sh '''
-                  mkdir -p css
-                  sass scss:css --no-source-map
-                '''
+                // Use NodeJS plugin for proper Node/npm environment
+                nodejs(nodeJSInstallationName: 'node16') {
+                    sh '''
+                      npm install -g sass
+                      mkdir -p css
+                      sass scss:css --no-source-map
+                    '''
+                }
             }
         }
 
