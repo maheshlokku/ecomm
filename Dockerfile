@@ -11,4 +11,4 @@ COPY build/ /usr/share/nginx/html/
 EXPOSE 80
 
 # Start Nginx in background
-CMD ["sh", "-c", "nginx & tail -f /dev/null"]
+CMD ["nginx", "-g", "daemon off;"]
