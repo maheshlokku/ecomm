@@ -156,6 +156,15 @@ pipeline {
                       # Force pods to restart with new image
                      kubectl rollout restart deployment/frontend-app
                      kubectl rollout status deployment/frontend-app
+
+                     echo "===== Pod Status ====="
+                     kubectl get pods -l app=frontend-app -o wide
+
+                    echo "===== Pod Description ====="
+                    kubectl describe pod $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
+
+                    echo "===== Pod Logs ====="
+                    kubectl logs $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
                       
                     '''
                 }
