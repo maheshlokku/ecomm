@@ -113,21 +113,22 @@ pipeline {
                     sh '''
                       set -e
 
-                      # --- Install kubectl if missing ---
+                      # Ensure kubectl is installed
                       if ! command -v kubectl &> /dev/null
                       then
                         echo "Installing kubectl..."
-                        curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        KUBECTL_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt)
+                        curl -L "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o kubectl
                         chmod +x kubectl
                         sudo mv kubectl /usr/local/bin/
                       fi
                       kubectl version --client
 
-                      # --- AKS Login ---
+                      # Login to AKS
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                       az aks get-credentials --resource-group datavalley_resource_groups --name crm-clstr --overwrite-existing
 
-                      # --- Deployment Manifest ---
+                      # Write deployment manifest
                       cat > ecomm-deployment.yaml <<EOF
                       apiVersion: apps/v1
                       kind: Deployment
@@ -164,7 +165,7 @@ pipeline {
                           targetPort: 3000
                       EOF
 
-                      # --- Deploy to AKS ---
+                      # Apply deployment and restart pods
                       kubectl apply -f ecomm-deployment.yaml
                       kubectl rollout restart deployment/frontend-app
                       kubectl rollout status deployment/frontend-app
