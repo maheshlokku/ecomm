@@ -2,10 +2,12 @@
   "name": "frontend-app",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js"
+    "build": "npm run sass",
+    "start": "npx serve build",
+    "sass": "sass scss:css --no-source-map"
   },
-  "dependencies": {
-    "express": "^4.18.2"
+  "devDependencies": {
+    "sass": "^1.77.0"
   },
   "packageManager": "npm@10.2.0"
 }
