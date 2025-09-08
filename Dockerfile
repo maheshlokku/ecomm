@@ -23,4 +23,4 @@ EXPOSE 3000
 
 # Set the command to run your application.
 # This will execute the "start" script defined in your package.json.
-CMD ["npx" ,"turbo", "run", "start"]
+CMD ["npm", "run", "start"]
