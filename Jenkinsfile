@@ -55,7 +55,6 @@ pipeline {
                 dir('.') {
                     sh '''
                       set -e
-                      # Build Docker image using Dockerfile from repo root
                       docker build -t ${APP_NAME}:${IMAGE_TAG} .
                       docker images | grep ${APP_NAME}
                     '''
@@ -113,9 +112,22 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: 'aks-json-key')]) {
                     sh '''
                       set -e
+
+                      # --- Install kubectl if missing ---
+                      if ! command -v kubectl &> /dev/null
+                      then
+                        echo "Installing kubectl..."
+                        curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        sudo mv kubectl /usr/local/bin/
+                      fi
+                      kubectl version --client
+
+                      # --- AKS Login ---
                       az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
                       az aks get-credentials --resource-group datavalley_resource_groups --name crm-clstr --overwrite-existing
 
+                      # --- Deployment Manifest ---
                       cat > ecomm-deployment.yaml <<EOF
                       apiVersion: apps/v1
                       kind: Deployment
@@ -152,20 +164,19 @@ pipeline {
                           targetPort: 3000
                       EOF
 
+                      # --- Deploy to AKS ---
                       kubectl apply -f ecomm-deployment.yaml
-                      # Force pods to restart with new image
-                     kubectl rollout restart deployment/frontend-app
-                     kubectl rollout status deployment/frontend-app
+                      kubectl rollout restart deployment/frontend-app
+                      kubectl rollout status deployment/frontend-app
 
-                     echo "===== Pod Status ====="
-                     kubectl get pods -l app=frontend-app -o wide
+                      echo "===== Pod Status ====="
+                      kubectl get pods -l app=frontend-app -o wide
 
-                    echo "===== Pod Description ====="
-                    kubectl describe pod $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
+                      echo "===== Pod Description ====="
+                      kubectl describe pod $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
 
-                    echo "===== Pod Logs ====="
-                    kubectl logs $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
-                      
+                      echo "===== Pod Logs ====="
+                      kubectl logs $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
                     '''
                 }
             }
