@@ -16,7 +16,7 @@ COPY . .
 
 # Run the build task for your frontend if it's a monorepo with Turborepo
 # This is necessary to create the static assets that will be served.
-RUN turbo run build --filter=frontend-app
+RUN npx turbo run build --filter=frontend-app
 
 # Expose the port your frontend server runs on (e.g., 3000, or whatever is configured)
 EXPOSE 3000
