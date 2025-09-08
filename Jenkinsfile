@@ -2,7 +2,7 @@ pipeline {
     agent { label 'JAgent-Node' }
 
     environment {
-        APP_NAME               = "frontend-app"
+        APP_NAME               = "ecomm"
         RELEASE                = "1.0.0"
         IMAGE_TAG              = "${RELEASE}-${BUILD_NUMBER}"
         DOCKERHUB_USER         = "registry2002"
@@ -10,6 +10,7 @@ pipeline {
         ACR_NAME               = "eocmm"
         AZURE_STORAGE_ACCOUNT  = "ecommstr"
         AZURE_CONTAINER        = "ecommctr"
+        
     }
 
     stages {
@@ -23,10 +24,13 @@ pipeline {
             steps {
                 nodejs(nodeJSInstallationName: 'Node18') {
                     sh '''
-                      set -e
-                      npm install -g sass
-                      mkdir -p css
-                      sass scss:css --no-source-map
+                        set -e
+                        npm install
+                        npm run build
+                        mkdir -p build
+                        cp -r css fonts img js *.html style.css build/
+                        echo "Contents of build folder:"
+                        ls -l build
                     '''
                 }
             }
@@ -35,12 +39,8 @@ pipeline {
         stage('Package Artifacts') {
             steps {
                 sh '''
-                  set -e
-                  mkdir -p build
-                  cp -r css fonts img js *.html style.css build/
-                  echo "Contents of build folder:"
-                  ls -l build
-                  zip -r ${APP_NAME}-${IMAGE_TAG}.zip build
+                    set -e
+                    zip -r ${APP_NAME}-${IMAGE_TAG}.zip build
                 '''
             }
             post {
@@ -52,13 +52,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir('.') {
-                    sh '''
-                      set -e
-                      docker build -t ${APP_NAME}:${IMAGE_TAG} .
-                      docker images | grep ${APP_NAME}
-                    '''
-                }
+                sh '''
+                    set -e
+                    docker build -t ${APP_NAME}:${IMAGE_TAG} .
+                    docker images | grep ${APP_NAME}
+                '''
             }
         }
 
@@ -66,10 +64,10 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'ecommhub-token', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
-                      set -e
-                      echo "$PASS" | docker login -u "$USER" --password-stdin
-                      docker tag ${APP_NAME}:${IMAGE_TAG} ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
-                      docker push ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                        set -e
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        docker tag ${APP_NAME}:${IMAGE_TAG} ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                        docker push ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
                     '''
                 }
             }
@@ -79,12 +77,12 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'ecomm-azctry')]) {
                     sh '''
-                      set -e
-                      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                      az account set --subscription 72d81257-1d17-40e1-89f6-ce5a59e7956f
-                      az acr login --name ${ACR_NAME}
-                      docker tag ${APP_NAME}:${IMAGE_TAG} ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
-                      docker push ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
+                        set -e
+                        az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+                        az account set --subscription 72d81257-1d17-40e1-89f6-ce5a59e7956f
+                        az acr login --name ${ACR_NAME}
+                        docker tag ${APP_NAME}:${IMAGE_TAG} ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
+                        docker push ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
@@ -94,14 +92,13 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'ecomm-azctry')]) {
                     sh '''
-                      set -e
-                      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                      az account set --subscription 72d81257-1d17-40e1-89f6-ce5a59e7956f
-                      az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
-                                             --container-name ${AZURE_CONTAINER} \
-                                             --file ${APP_NAME}-${IMAGE_TAG}.zip \
-                                             --name ${APP_NAME}-${IMAGE_TAG}.zip \
-                                             --auth-mode login
+                        set -e
+                        az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+                        az storage blob upload --account-name ${AZURE_STORAGE_ACCOUNT} \
+                                               --container-name ${AZURE_CONTAINER} \
+                                               --file ${APP_NAME}-${IMAGE_TAG}.zip \
+                                               --name ${APP_NAME}-${IMAGE_TAG}.zip \
+                                               --account-key $STORAGE_KEY
                     '''
                 }
             }
@@ -111,73 +108,46 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: 'aks-json-key')]) {
                     sh '''
-                      set -e
+                        set -e
+                        az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+                        az aks get-credentials --resource-group datavalley_resource_groups --name crm-clstr --overwrite-existing
 
-                      # Ensure kubectl is installed
-                      if ! command -v kubectl &> /dev/null
-                      then
-                        echo "Installing kubectl..."
-                        KUBECTL_VERSION=v1.30.0
-                        curl -L "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o kubectl
-                        chmod +x kubectl
-                        sudo mv kubectl /usr/local/bin/
-                      fi
-                      kubectl version --client
+                        cat > ecomm-deployment.yaml <<EOF
+                        apiVersion: apps/v1
+                        kind: Deployment
+                        metadata:
+                          name: ecommerce-deployment
+                        spec:
+                          replicas: 2
+                          selector:
+                            matchLabels:
+                              app: ecommerce
+                          template:
+                            metadata:
+                              labels:
+                                app: ecommerce
+                            spec:
+                              containers:
+                              - name: ecommerce
+                                image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
+                                ports:
+                                - containerPort: 80
+                        ---
+                        apiVersion: v1
+                        kind: Service
+                        metadata:
+                          name: ecommerce-service
+                        spec:
+                          type: LoadBalancer
+                          selector:
+                            app: ecommerce
+                          ports:
+                          - protocol: TCP
+                            port: 80
+                            targetPort: 80
+                        EOF
 
-                      # Login to AKS
-                      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                      az aks get-credentials --resource-group datavalley_resource_groups --name crm-clstr --overwrite-existing
-
-                      # Write deployment manifest
-                      cat > ecomm-deployment.yaml <<EOF
-                      apiVersion: apps/v1
-                      kind: Deployment
-                      metadata:
-                        name: frontend-app
-                      spec:
-                        replicas: 2
-                        selector:
-                          matchLabels:
-                            app: frontend-app
-                        template:
-                          metadata:
-                            labels:
-                              app: frontend-app
-                          spec:
-                            containers:
-                            - name: frontend-app
-                              image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
-                              imagePullPolicy: Always
-                              ports:
-                              - containerPort: 3000
-                      ---
-                      apiVersion: v1
-                      kind: Service
-                      metadata:
-                        name: ecommerce-service
-                      spec:
-                        type: LoadBalancer
-                        selector:
-                          app: frontend-app
-                        ports:
-                        - protocol: TCP
-                          port: 80
-                          targetPort: 3000
-                      EOF
-
-                      # Apply deployment and restart pods
-                      kubectl apply -f ecomm-deployment.yaml
-                      kubectl rollout restart deployment/frontend-app
-                      kubectl rollout status deployment/frontend-app
-
-                      echo "===== Pod Status ====="
-                      kubectl get pods -l app=frontend-app -o wide
-
-                      echo "===== Pod Description ====="
-                      kubectl describe pod $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
-
-                      echo "===== Pod Logs ====="
-                      kubectl logs $(kubectl get pods -l app=frontend-app -o jsonpath='{.items[0].metadata.name}')
+                        kubectl apply -f ecomm-deployment.yaml
                     '''
                 }
             }
