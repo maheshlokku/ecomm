@@ -2,7 +2,7 @@ pipeline {
     agent { label 'JAgent-Node' }
 
     environment {
-        APP_NAME               = "ecomm"
+        APP_NAME               = "frontend-app"
         RELEASE                = "1.0.0"
         IMAGE_TAG              = "${RELEASE}-${BUILD_NUMBER}"
         DOCKERHUB_USER         = "registry2002"
@@ -119,19 +119,19 @@ pipeline {
                       apiVersion: apps/v1
                       kind: Deployment
                       metadata:
-                        name: ecommerce-deployment
+                        name: frontend-app
                       spec:
                         replicas: 2
                         selector:
                           matchLabels:
-                            app: ecommerce
+                            app: frontend-app
                         template:
                           metadata:
                             labels:
-                              app: ecommerce
+                              app: frontend-app
                           spec:
                             containers:
-                            - name: ecommerce
+                            - name: frontend-app
                               image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}:latest
                               ports:
                               - containerPort: 80
