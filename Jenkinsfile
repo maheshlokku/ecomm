@@ -134,6 +134,7 @@ pipeline {
                             containers:
                             - name: frontend-app
                               image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
+                              imagePullPolicy: Always
                               ports:
                               - containerPort: 3000
                       ---
