@@ -153,6 +153,10 @@ pipeline {
                       EOF
 
                       kubectl apply -f ecomm-deployment.yaml
+                      # Force pods to restart with new image
+                     kubectl rollout restart deployment/frontend-app
+                     kubectl rollout status deployment/frontend-app
+                      
                     '''
                 }
             }
