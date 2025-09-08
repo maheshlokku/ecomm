@@ -98,7 +98,8 @@ pipeline {
                                                --container-name ${AZURE_CONTAINER} \
                                                --file ${APP_NAME}-${IMAGE_TAG}.zip \
                                                --name ${APP_NAME}-${IMAGE_TAG}.zip \
-                                               --account-key $STORAGE_KEY
+                                                --auth-mode login
+                                               
                     '''
                 }
             }
@@ -144,7 +145,7 @@ pipeline {
                           ports:
                           - protocol: TCP
                             port: 80
-                            targetPort: 80
+                            targetPort: 3000
                         EOF
 
                         kubectl apply -f ecomm-deployment.yaml
