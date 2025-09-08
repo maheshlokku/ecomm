@@ -117,7 +117,7 @@ pipeline {
                       if ! command -v kubectl &> /dev/null
                       then
                         echo "Installing kubectl..."
-                        KUBECTL_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt)
+                        KUBECTL_VERSION=v1.30.0
                         curl -L "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o kubectl
                         chmod +x kubectl
                         sudo mv kubectl /usr/local/bin/
