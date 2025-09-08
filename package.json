@@ -2,7 +2,7 @@
   "name": "frontend-app",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js"  // or "next start" or a similar command
+    "start": "node server.js"  
   },
   "dependencies": {
     "express": "^4.18.2"
