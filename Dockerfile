@@ -7,6 +7,9 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy the entire build folder into Nginx html directory
 COPY build/ /usr/share/nginx/html/
 
+# Copy package.json to the root directory of the container
+COPY package.json /
+
 # Expose port 80
 EXPOSE 80
 
