@@ -132,9 +132,9 @@ pipeline {
                           spec:
                             containers:
                             - name: frontend-app
-                              image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}:latest
+                              image: ${ACR_NAME}.azurecr.io/${APP_NAME}:${IMAGE_TAG}
                               ports:
-                              - containerPort: 80
+                              - containerPort: 3000
                       ---
                       apiVersion: v1
                       kind: Service
@@ -143,11 +143,11 @@ pipeline {
                       spec:
                         type: LoadBalancer
                         selector:
-                          app: ecommerce
+                          app: frontend-app
                         ports:
                         - protocol: TCP
                           port: 80
-                          targetPort: 80
+                          targetPort: 3000
                       EOF
 
                       kubectl apply -f ecomm-deployment.yaml
