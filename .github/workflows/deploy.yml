@@ -1,29 +1,31 @@
-name: Deploy Static App
+name: Sample Web App
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build-and-run:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
+      - name: Install Node.js (for SCSS)
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install http-server
-        run: npm install -g http-server
-
-      - name: Kill existing server (if any)
-        run: pkill -f http-server || true
-
-      - name: Start Application
+      - name: Install dependencies
         run: |
-          nohup http-server . -p 8080 &
+          npm install -g sass
+
+      - name: Compile SCSS to CSS
+        run: |
+          sass ./scss:./css
+
+      - name: Start simple server
+        run: |
+          npx serve -l 3000 &
+          sleep 10
