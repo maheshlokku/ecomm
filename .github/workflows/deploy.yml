@@ -28,5 +28,5 @@ jobs:
 
       - name: Run Application
         run: |
-          pm2 start "npx serve -l 0.0.0.0:3000"
+          pm2 start "npx serve -l 0.0.0.0:8080"
           pm2 save
