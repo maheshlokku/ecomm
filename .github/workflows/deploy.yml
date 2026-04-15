@@ -1,0 +1,29 @@
+name: Deploy Static App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install http-server
+        run: npm install -g http-server
+
+      - name: Kill existing server (if any)
+        run: pkill -f http-server || true
+
+      - name: Start Application
+        run: |
+          nohup http-server . -p 8080 &
