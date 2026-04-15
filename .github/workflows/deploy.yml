@@ -16,12 +16,17 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y nodejs npm
-          npm install -g serve sass
+          npm install -g serve sass pm2
 
       - name: Build SCSS
         run: |
           sass ./scss:./css || true
 
+      - name: Stop old app (if running)
+        run: |
+          pm2 delete all || true
+
       - name: Run Application
         run: |
-          nohup npx serve -l 3000 > output.log 2>&1 &
+          pm2 start "npx serve -l 0.0.0.0:3000"
+          pm2 save
