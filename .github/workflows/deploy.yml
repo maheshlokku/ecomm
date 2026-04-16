@@ -1,32 +1,31 @@
-name: Deploy App on EC2
+name: Deploy Frontend App to EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y nodejs npm
-          npm install -g serve sass pm2
+        run: npm install
 
-      - name: Build SCSS
-        run: |
-          sass ./scss:./css || true
+      - name: Build application
+        run: npm run build
 
-      - name: Stop old app (if running)
-        run: |
-          pm2 delete all || true
+      - name: Clean old deployment
+        run: sudo rm -rf /var/www/html/*
 
-      - name: Run Application
-        run: |
-          pm2 start "npx serve -l 0.0.0.0:8080"
-          pm2 save
+      - name: Deploy new build
+        run: sudo cp -r dist/* /var/www/html/
+        # If your project uses "build" folder instead of "dist", change accordingly:
+        # sudo cp -r build/* /var/www/html/
+
+      - name: Restart Nginx
+        run: sudo systemctl restart nginx
