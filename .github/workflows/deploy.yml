@@ -19,13 +19,14 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Clean old deployment
-        run: sudo rm -rf /var/www/html/*
+      - name: Deploy to Nginx
+        run: |
+          rm -rf /var/www/html/*
+          cp -r dist/* /var/www/html/
 
-      - name: Deploy new build
-        run: sudo cp -r dist/* /var/www/html/
-        # If your project uses "build" folder instead of "dist", change accordingly:
-        # sudo cp -r build/* /var/www/html/
+      - name: Set permissions
+        run: |
+          chown -R www-data:www-data /var/www/html/
 
-      - name: Restart Nginx
-        run: sudo systemctl restart nginx
+      - name: Reload Nginx
+        run: sudo systemctl reload nginx
