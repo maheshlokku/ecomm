@@ -21,12 +21,12 @@ jobs:
 
       - name: Deploy to Nginx
         run: |
-          rm -rf /var/www/html/*
-          cp -r dist/* /var/www/html/
+          sudo rm -rf /var/www/html/*
+          sudo cp -r dist/* /var/www/html/
 
       - name: Set permissions
         run: |
-          chown -R www-data:www-data /var/www/html/
+          sudo chown -R www-data:www-data /var/www/html/
 
       - name: Reload Nginx
         run: sudo systemctl reload nginx
